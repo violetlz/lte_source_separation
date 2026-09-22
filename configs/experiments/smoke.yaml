@@ -1,0 +1,7 @@
+platform_config: ../platform/lte_v1.yaml
+name: smoke
+split: audit
+num_examples: 16
+sir_re_db: [-6, 0, 6]
+calibration_path: ../../artifacts/calibration/lte_v1_calibration.json
+precision: complex128

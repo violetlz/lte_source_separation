@@ -1,0 +1,7 @@
+platform_config: ../platform/lte_v1.yaml
+name: platform_validation
+split: test
+num_examples: 256
+sir_re_db: [-12, -9, -6, -3, 0, 3, 6, 9, 12]
+calibration_path: ../../artifacts/calibration/lte_v1_calibration.json
+precision: complex128

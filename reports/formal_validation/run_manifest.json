@@ -1,0 +1,27 @@
+{
+  "calibration_hash": "aae240e407c2d42820842d847b278fe5278d29696cc9e3afc80d2cf483acc444",
+  "created_utc": "2026-09-22T14:57:58.273736+00:00",
+  "elapsed_seconds": 11.850427307013888,
+  "fft_compute_precision": "numpy complex128",
+  "git": {
+    "branch": "main",
+    "commit": null,
+    "status_porcelain": "?? .gitignore\n?? AGENTS.md\n?? README.md\n?? THIRD_PARTY.md\n?? artifacts/\n?? configs/\n?? docs/\n?? pyproject.toml\n?? reference/\n?? reports/\n?? requirements.lock\n?? src/\n?? tests/"
+  },
+  "host": "user",
+  "matplotlib": "3.11.2",
+  "model": "not applicable; no model or checkpoint used",
+  "numpy": "2.5.3",
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "platform_hash": "18b2a1bc425f217e36c9e67f9fd64f13701f45c83148ec0ccba42205f8115cb5",
+  "precision": "complex128",
+  "processor": "x86_64",
+  "project_root": "/data3/workspace/lab/lte_source_separation",
+  "python": "3.13.11 | packaged by Anaconda, Inc. | (main, Dec 10 2025, 21:28:48) [GCC 14.3.0]",
+  "pyyaml": "6.0.3",
+  "root_seed": 20260922,
+  "run_id": "20260922T145746Z_platform_validation",
+  "sample_manifest_digest": "c271b93400e2c975dcbf3599efc2168bfac03c31cd83aa53d2e5504d5269d180",
+  "seed_scheme": "sha256(rfsep-v1|root|purpose|split|record_id)",
+  "status": "passed"
+}

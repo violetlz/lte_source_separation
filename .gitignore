@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+artifacts/calibration/*
+artifacts/datasets/*
+artifacts/manifests/*
+artifacts/runs/*
+artifacts/matlab_reference/
+!artifacts/calibration/.gitkeep
+!artifacts/datasets/.gitkeep
+!artifacts/manifests/.gitkeep
+!artifacts/runs/.gitkeep
+reference/matlab/*.mat

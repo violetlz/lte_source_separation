@@ -1,0 +1,10 @@
+{
+  "description": "Schema-only fixture; concrete identities are generated from the active platform hash.",
+  "record": {
+    "example_id": "pair:audit:00000000",
+    "split": "audit",
+    "record_id": 0,
+    "target_parent": "target:audit:00000000",
+    "interference_parent": "interference:audit:00000000"
+  }
+}

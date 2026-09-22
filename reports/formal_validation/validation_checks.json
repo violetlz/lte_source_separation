@@ -1,0 +1,232 @@
+{
+  "all_passed": true,
+  "all_rows_present": {
+    "actual": 6912,
+    "passed": true
+  },
+  "all_status_ok_and_finite": {
+    "passed": true
+  },
+  "clean_zero_errors": {
+    "passed": true,
+    "total_errors": 0
+  },
+  "direct_denominators": {
+    "expected_bits_per_sir": 2150400,
+    "passed": true
+  },
+  "fixed_kappa_per_condition": {
+    "passed": true
+  },
+  "oracle_zero_errors": {
+    "passed": true,
+    "total_errors": 0
+  },
+  "sir_ensemble_tolerance": {
+    "max_abs_error_db": 0.001777594797323167,
+    "passed": true,
+    "tolerance_db": 0.25
+  },
+  "waveform_audit": {
+    "all_passed": true,
+    "checks": {
+      "constellation_16QAM": {
+        "anchor_error": 0.0,
+        "mean_energy": 1.0,
+        "num_labels": 16,
+        "passed": true
+      },
+      "constellation_64QAM": {
+        "anchor_error": 0.0,
+        "mean_energy": 1.0000000000000002,
+        "num_labels": 64,
+        "passed": true
+      },
+      "constellation_QPSK": {
+        "anchor_error": 0.0,
+        "mean_energy": 1.0,
+        "num_labels": 4,
+        "passed": true
+      },
+      "cp": {
+        "cp_max_abs_error": 0.0,
+        "cp_mean_symbol_max_abs_error": 0.0,
+        "passed": true
+      },
+      "cp_damage_counterexample": {
+        "damaged_cp_max_abs_error": 2.174857780438355,
+        "passed": true,
+        "post_cp_removal_grid_relative_error": 1.9415681491552004e-16
+      },
+      "independent_single_tone_formula": {
+        "passed": true,
+        "tones": [
+          {
+            "max_abs_error": 5.545371301013008e-15,
+            "signed_tone": -150
+          },
+          {
+            "max_abs_error": 5.514360421135873e-15,
+            "signed_tone": 150
+          },
+          {
+            "max_abs_error": 1.1060277058968599e-14,
+            "signed_tone": -600
+          },
+          {
+            "max_abs_error": 1.1060277058968599e-14,
+            "signed_tone": 600
+          }
+        ]
+      },
+      "information_boundary": {
+        "forbidden_fields_present": [],
+        "passed": true,
+        "receiver_info_fields": [
+          "calibration_id",
+          "kappa",
+          "noise",
+          "noise_variance",
+          "platform_hash",
+          "platform_version",
+          "sir_re_db"
+        ]
+      },
+      "interference_crop_edges": {
+        "cases": [
+          {
+            "max_abs_error": 0.0,
+            "tau": 0
+          },
+          {
+            "max_abs_error": 0.0,
+            "tau": 30719
+          }
+        ],
+        "passed": true
+      },
+      "interference_reference_frame": {
+        "blocks": [
+          {
+            "block": 0,
+            "frame": 0,
+            "max_constellation_error": 7.108895957933346e-16,
+            "modulation": "QPSK"
+          },
+          {
+            "block": 1,
+            "frame": 0,
+            "max_constellation_error": 9.036560719766055e-16,
+            "modulation": "16QAM"
+          },
+          {
+            "block": 2,
+            "frame": 0,
+            "max_constellation_error": 9.420554752102651e-16,
+            "modulation": "64QAM"
+          },
+          {
+            "block": 3,
+            "frame": 0,
+            "max_constellation_error": 7.850462293418876e-16,
+            "modulation": "QPSK"
+          },
+          {
+            "block": 0,
+            "frame": 1,
+            "max_constellation_error": 8.671119018262734e-16,
+            "modulation": "QPSK"
+          },
+          {
+            "block": 1,
+            "frame": 1,
+            "max_constellation_error": 9.485749680535094e-16,
+            "modulation": "16QAM"
+          },
+          {
+            "block": 2,
+            "frame": 1,
+            "max_constellation_error": 8.671119018262734e-16,
+            "modulation": "64QAM"
+          },
+          {
+            "block": 3,
+            "frame": 1,
+            "max_constellation_error": 7.850462293418876e-16,
+            "modulation": "QPSK"
+          },
+          {
+            "block": 0,
+            "frame": 2,
+            "max_constellation_error": 7.447602459741819e-16,
+            "modulation": "QPSK"
+          },
+          {
+            "block": 1,
+            "frame": 2,
+            "max_constellation_error": 8.671119018262734e-16,
+            "modulation": "16QAM"
+          },
+          {
+            "block": 2,
+            "frame": 2,
+            "max_constellation_error": 9.226380847435024e-16,
+            "modulation": "64QAM"
+          },
+          {
+            "block": 3,
+            "frame": 2,
+            "max_constellation_error": 8.881784197001252e-16,
+            "modulation": "QPSK"
+          }
+        ],
+        "cp_max_abs_error": 0.0,
+        "modulations_covered": [
+          "16QAM",
+          "64QAM",
+          "QPSK"
+        ],
+        "passed": true
+      },
+      "precision_and_network_coordinates": {
+        "complex64_bit_errors": 0,
+        "complex64_relative_grid_error": 8.673782271578357e-08,
+        "fft_compute_precision": "numpy promotes complex64 FFT output to complex128",
+        "network_roundtrip_max_abs_error": 4.440892098500626e-16,
+        "passed": true
+      },
+      "randomness": {
+        "order_invariant": true,
+        "passed": true,
+        "source_stream_independent": true
+      },
+      "resource_map": {
+        "interference_count": 1200,
+        "interference_edges": [
+          -600,
+          600
+        ],
+        "passed": true,
+        "target_count": 300,
+        "target_edges": [
+          -150,
+          150
+        ]
+      },
+      "split_disjointness": {
+        "deliberate_collision_rejected": true,
+        "normal_manifests_passed": true,
+        "passed": true
+      },
+      "target_roundtrip": {
+        "num_bits": 8400,
+        "num_errors": 0,
+        "passed": true,
+        "relative_grid_error": 1.9415681491552004e-16
+      }
+    },
+    "failed": 0,
+    "passed": 14,
+    "platform_hash": "18b2a1bc425f217e36c9e67f9fd64f13701f45c83148ec0ccba42205f8115cb5"
+  }
+}
