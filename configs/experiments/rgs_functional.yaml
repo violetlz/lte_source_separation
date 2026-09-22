@@ -1,0 +1,14 @@
+version: lte-rgs-functional-v1
+split: test
+parent_id_start: 2000000
+parents: 64
+sir_re_db: [-6, -3, 0, 3, 6]
+slots: [0, 1]
+iterations: 2000
+long_iteration_dev:
+  parents: 4
+  sir_re_db: [-6, 0, 6]
+  iterations: [2000, 20000]
+min_lr: 0.000001
+timestep_range: [1, 49]
+seed: 2026092302

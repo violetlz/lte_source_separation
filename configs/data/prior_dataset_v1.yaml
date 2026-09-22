@@ -1,0 +1,24 @@
+version: lte-prior-materialized-v1
+dataset_id: lte-prior-v1-parent32000-n200000-val1024
+view_config: ../training/prior_view_v1.yaml
+storage:
+  root: ../../artifacts/datasets
+  shard_rows: 512
+generation:
+  workers: 8
+train:
+  parent_id_start: 32000
+  parents_per_source: 200000
+  both_slots: false
+validation:
+  parent_id_start: 0
+  parents_per_source: 1024
+  both_slots: true
+rgs_dev:
+  split: audit
+  parent_id_start: 1000000
+  parents: 64
+formal_test:
+  split: test
+  parent_id_start: 2000000
+  parents: 64

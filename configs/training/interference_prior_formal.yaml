@@ -1,0 +1,55 @@
+version: lte-interference-prior-formal-v1
+view_config: prior_view_v1.yaml
+source: interference
+model:
+  residual_layers: 24
+  residual_channels: 128
+  dilation_cycle: 12
+  kernel_size: 3
+  timestep_dim: 128
+  timestep_hidden: 512
+  in_channels: 2
+  out_channels: 2
+diffusion: {steps: 50, beta_start: 0.0001, beta_end: 0.05, prediction: epsilon}
+optimizer:
+  name: adam
+  learning_rate: 0.0002
+  min_learning_rate: 0.00002
+  betas: [0.9, 0.999]
+  weight_decay: 0
+  grad_clip: 1.0
+  ema_decay: 0.999
+runtime:
+  effective_batch_size: 16
+  microbatch_size: 8
+  precision: bf16
+  activation_checkpointing: false
+  num_workers: 4
+  prefetch_factor: 2
+  sampler_seed: 2026092302
+data:
+  train_manifest: ../../artifacts/datasets/lte-prior-v1-parent32000-n200000-val1024/interference/train/manifest.json
+  validation_manifest: ../../artifacts/datasets/lte-prior-v1-parent32000-n200000-val1024/interference/validation/manifest.json
+continue_from:
+  checkpoint: ../../artifacts/prior_pilot/prior-pilot-20260922/interference/checkpoints/last.pt
+  sha256: 82f56b4257f145bc862d89b41d4b8d3220107b029bae027462511f4ebc90aec7
+  wandb_run: 2xif3tr0
+validation:
+  noise_levels: [0, 1, 4, 9, 24, 39, 49]
+  quick_parents: 64
+  full_parents: 1024
+  batch_size: 8
+  noise_seed: 2026092304
+  quick_every: 1000
+  full_every: 10000
+checkpoint: {last_every: 2000, keep_last: 3}
+tracking:
+  project: lte-source-separation
+  group: prior-formal-20260923
+  name: interference-prior-formal
+  run_id: pyq671jm
+  log_every: 50
+budget: {max_cumulative_updates: 300000}
+fingerprints:
+  model_distribution: lte-interference-prior-v1-24x128-sqrt2ri-vp50
+  evaluation_protocol: prior-quality-v1-val1024-multinoise

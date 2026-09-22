@@ -6,7 +6,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-VALID_STATES = {"not_started", "running", "stable_running", "completed_budget", "failed", "blocked"}
+VALID_STATES = {
+    "not_started", "running", "training", "validation", "rgs_eval",
+    "stable_running", "paused", "completed", "completed_budget", "failed", "blocked",
+}
 
 
 def write_json_atomic(path: Path, payload: dict) -> None:

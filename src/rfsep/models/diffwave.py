@@ -14,16 +14,18 @@ class DiffusionEmbedding(nn.Module):
         if dim % 2:
             raise ValueError("sinusoidal dimension must be even")
         self.dim = dim
+        half = dim // 2
+        self.register_buffer(
+            "frequencies",
+            torch.exp(torch.arange(half, dtype=torch.float32)
+                      * (-math.log(10_000.0) / max(half - 1, 1))),
+            persistent=False,
+        )
         self.projection1 = nn.Linear(dim, hidden)
         self.projection2 = nn.Linear(hidden, hidden)
 
     def forward(self, timestep: torch.Tensor) -> torch.Tensor:
-        half = self.dim // 2
-        frequencies = torch.exp(
-            torch.arange(half, device=timestep.device, dtype=torch.float32)
-            * (-math.log(10_000.0) / max(half - 1, 1))
-        )
-        angles = timestep.float().unsqueeze(1) * frequencies.unsqueeze(0)
+        angles = timestep.float().unsqueeze(1) * self.frequencies.unsqueeze(0)
         encoding = torch.cat((torch.sin(angles), torch.cos(angles)), dim=1)
         return F.silu(self.projection2(F.silu(self.projection1(encoding))))
 
@@ -75,14 +77,14 @@ class DiffWavePrior(nn.Module):
             raise ValueError("timestep must have shape [B]")
         h = F.relu(self.input_projection(x))
         embedding = self.diffusion_embedding(timestep)
-        skips = []
+        skip_sum = None
         for block in self.blocks:
             if self.activation_checkpointing and self.training:
                 h, skip = checkpoint(block, h, embedding, use_reentrant=False)
             else:
                 h, skip = block(h, embedding)
-            skips.append(skip)
-        h = torch.stack(skips).sum(dim=0) / math.sqrt(len(skips))
+            skip_sum = skip if skip_sum is None else skip_sum + skip
+        h = skip_sum / math.sqrt(len(self.blocks))
         h = F.relu(self.skip_projection(h))
         return self.output_projection(h)
 

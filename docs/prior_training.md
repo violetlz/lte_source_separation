@@ -70,3 +70,76 @@ The stop helper validates every PID's live command line against this exact group
 Fixed levels 0, 9, 24, 39, and 49 report raw and EMA epsilon MSE, zero-predictor MSE, real-coordinate MSE, complex NMSE, CP/tail discrepancy, and direct-rescaling/scalar-Gaussian baselines. Target validation additionally reports uncoded BER/EVM on the artificial diffusion perturbation; these are neither physical-noise BER nor separation BER. Best selection uses EMA fixed-validation epsilon MSE at t=24 and never uses the test split.
 
 Step 0, 200, and budget end use all 128 windows (two slots from each of 64 parents); intermediate validation uses a fixed 16-window subset. Failures and unfavorable metrics are retained.
+
+## Formal continuation (Task 03)
+
+Formal training is a separate contract, not a relaxed pilot config. It explicitly
+continues from each audited 2000-step checkpoint, preserving raw/EMA/Adam, cumulative
+step/exposures and diffusion-noise RNG. The fixed-data sampler is a new stream and starts
+at epoch 0 offset 0; the historical online cursor remains recorded separately.
+
+Generate and validate the data before launch:
+
+```bash
+for source in target interference; do
+  .venv-train/bin/python scripts/prepare_prior_dataset.py --source "$source" --split train
+  .venv-train/bin/python scripts/prepare_prior_dataset.py --source "$source" --split validation
+  .venv-train/bin/python scripts/validate_prior_dataset.py \
+    artifacts/datasets/lte-prior-v1-parent32000-n200000-val1024/$source/train/manifest.json
+  .venv-train/bin/python scripts/validate_prior_dataset.py \
+    artifacts/datasets/lte-prior-v1-parent32000-n200000-val1024/$source/validation/manifest.json
+done
+```
+
+Each training manifest contains 200,000 parents/rows with IDs `[32000,232000)`.
+Validation contains 1,024 independent parents and both slots (2,048 rows). Training
+refuses manifests not marked `validated`.
+
+Profile one visible GPU at a time, then launch exactly one source process per physical GPU:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv-train/bin/python scripts/profile_prior_training.py --source target
+CUDA_VISIBLE_DEVICES=1 .venv-train/bin/python scripts/profile_prior_training.py --source interference
+.venv-train/bin/python scripts/run_prior_formal.py orchestrate
+```
+
+The launcher rejects identical GPU indices/UUIDs, occupied cards, duplicate live workers,
+and workers that can see more than one GPU. Formal updates use effective batch 16,
+microbatch 8, BF16, four persistent DataLoader workers, pinned memory and prefetch 2.
+The recoverable sampler commits its 16 indices only after a successful optimizer update;
+prefetched indices do not advance durable state.
+
+Formal quick validation runs every 1,000 cumulative updates, full validation every
+10,000, and `last.pt` every 2,000. The last three numbered ordinary checkpoints are
+retained. Target/interference cumulative budgets are 200,000/300,000; learning rate stays
+2e-4 through 80% of the cumulative budget and then cosine decays to 2e-5.
+
+## Frozen-prior RGS
+
+`load_prior_for_inference` loads only frozen raw/EMA inference state and validates model,
+source, schedule, view and platform semantics. `separate_rgs` accepts only mixture,
+public kappa, public initialization, frozen priors and an inference config; ground truth
+is not in its API. Default `omega=kappa^2`, timesteps are sampled from 1..49 and the
+learning rate follows a cosine schedule. Dev and functional protocols are frozen in
+`configs/experiments/rgs_dev.yaml` and `rgs_functional.yaml`.
+
+The 16-step pilot-checkpoint smoke is an engineering gate only:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv-train/bin/python scripts/smoke_rgs.py \
+  --target-checkpoint artifacts/prior_pilot/prior-pilot-20260922/target/checkpoints/last.pt \
+  --interference-checkpoint artifacts/prior_pilot/prior-pilot-20260922/interference/checkpoints/last.pt \
+  --output artifacts/runs/task03_rgs_smoke.json
+```
+
+It checks loading, freezing, finite scores/updates, estimate movement and the mixture
+identity. It is not a claim of BER improvement. Full RGS selection remains dev-only and
+formal test stays sealed until the final pair and hyperparameters are frozen.
+
+A lightweight inference-only package (no Adam/RNG/dataset state) can be exported and is
+immediately reloaded as a verification gate:
+
+```bash
+.venv-train/bin/python scripts/export_prior.py --source target --weights ema \
+  --checkpoint <formal-or-pilot-checkpoint.pt> --output artifacts/runs/target_ema_export.pt
+```

@@ -1,0 +1,55 @@
+version: lte-target-prior-formal-v1
+view_config: prior_view_v1.yaml
+source: target
+model:
+  residual_layers: 24
+  residual_channels: 64
+  dilation_cycle: 12
+  kernel_size: 3
+  timestep_dim: 128
+  timestep_hidden: 512
+  in_channels: 2
+  out_channels: 2
+diffusion: {steps: 50, beta_start: 0.0001, beta_end: 0.05, prediction: epsilon}
+optimizer:
+  name: adam
+  learning_rate: 0.0002
+  min_learning_rate: 0.00002
+  betas: [0.9, 0.999]
+  weight_decay: 0
+  grad_clip: 1.0
+  ema_decay: 0.999
+runtime:
+  effective_batch_size: 16
+  microbatch_size: 8
+  precision: bf16
+  activation_checkpointing: false
+  num_workers: 4
+  prefetch_factor: 2
+  sampler_seed: 2026092301
+data:
+  train_manifest: ../../artifacts/datasets/lte-prior-v1-parent32000-n200000-val1024/target/train/manifest.json
+  validation_manifest: ../../artifacts/datasets/lte-prior-v1-parent32000-n200000-val1024/target/validation/manifest.json
+continue_from:
+  checkpoint: ../../artifacts/prior_pilot/prior-pilot-20260922/target/checkpoints/last.pt
+  sha256: ec13a8f9bea188fa584643ef8ee31a82491ed73801b886d0792129fdb62f5826
+  wandb_run: 1za8kes6
+validation:
+  noise_levels: [0, 1, 4, 9, 24, 39, 49]
+  quick_parents: 64
+  full_parents: 1024
+  batch_size: 16
+  noise_seed: 2026092303
+  quick_every: 1000
+  full_every: 10000
+checkpoint: {last_every: 2000, keep_last: 3}
+tracking:
+  project: lte-source-separation
+  group: prior-formal-20260923
+  name: target-prior-formal
+  run_id: ewq62hpj
+  log_every: 50
+budget: {max_cumulative_updates: 200000}
+fingerprints:
+  model_distribution: lte-target-prior-v1-24x64-sqrt2ri-vp50
+  evaluation_protocol: prior-quality-v1-val1024-multinoise

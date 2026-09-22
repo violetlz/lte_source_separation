@@ -1,0 +1,20 @@
+version: prior-quality-v1
+quick_noise_levels: [0, 1, 4, 9, 24, 39, 49]
+full_noise_levels: [0, 1, 4, 9, 24, 39, 49]
+all_noise_levels_subset: {parents: 64, levels: 50}
+quick_parents: 64
+full_parents: 1024
+models: [raw, ema]
+metrics:
+  - noise_mse
+  - waveform_nmse
+  - active_subcarrier_evm
+  - active_subcarrier_ber
+  - inactive_guard_error
+  - cp_consistency
+  - edge_middle_error
+baselines:
+  target: [zero_epsilon, direct_rescale, scalar_gaussian, exact_ofdm_lmmse]
+  interference: [zero_epsilon, direct_rescale, scalar_gaussian, train_psd_wiener]
+nonfinite_policy: fail
+bootstrap: {unit: parent_record, paired: true, confidence: 0.95}

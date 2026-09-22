@@ -1,6 +1,6 @@
 # lte_source_separation
 
-Reproducible LTE-inspired 5/20 MHz asynchronous OFDM waveform benchmark. Delivery A provides the validated physical waveform platform. Delivery B adds two independent 0.5 ms VP epsilon-prediction priors and their bounded pilot-training machinery; it still does not implement source separation or RGS/FM inference.
+Reproducible LTE-inspired 5/20 MHz asynchronous OFDM waveform benchmark. Delivery A provides the validated physical waveform platform. Delivery B adds two independent 0.5 ms VP epsilon-prediction priors. Delivery C adds materialized formal-training data, explicit pilot-to-formal continuation, and frozen-prior waveform alpha-RGS engineering validation. FM and physical AWGN remain out of scope; a working RGS interface is not itself a claim of BER gain.
 
 ## Install
 
@@ -16,7 +16,7 @@ uv pip install --python .venv-train/bin/python -e '.[test]' 'wandb==0.30.0'
 
 The verified environment is recorded in `requirements.lock` and in each run manifest.
 
-Prior inspection, benchmarking, and training commands are documented in `docs/prior_training.md`.
+Prior dataset generation, inspection, profiling, formal training and RGS smoke commands are documented in `docs/prior_training.md`.
 
 ## Reproduce delivery A
 

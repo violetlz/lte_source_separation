@@ -1,35 +1,44 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import torch
+from torch import nn
 
 
-@dataclass(frozen=True)
-class VPSchedule:
-    steps: int = 50
-    beta_start: float = 1e-4
-    beta_end: float = 0.05
+class VPSchedule(nn.Module):
+    """Variance-preserving schedule with device-cached FP32 coefficients."""
+
+    def __init__(self, steps: int = 50, beta_start: float = 1e-4,
+                 beta_end: float = 0.05):
+        super().__init__()
+        self.steps = int(steps)
+        self.beta_start = float(beta_start)
+        self.beta_end = float(beta_end)
+        beta = torch.linspace(self.beta_start, self.beta_end, self.steps,
+                              dtype=torch.float32)
+        alpha = 1.0 - beta
+        self.register_buffer("beta", beta, persistent=True)
+        self.register_buffer("alpha", alpha, persistent=True)
+        self.register_buffer("alpha_bar", torch.cumprod(alpha, dim=0), persistent=True)
 
     def tensors(self, device=None) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        beta = torch.linspace(self.beta_start, self.beta_end, self.steps,
-                              dtype=torch.float32, device=device)
-        alpha = 1.0 - beta
-        return beta, alpha, torch.cumprod(alpha, dim=0)
+        if device is None or self.beta.device == torch.device(device):
+            return self.beta, self.alpha, self.alpha_bar
+        return self.beta.to(device), self.alpha.to(device), self.alpha_bar.to(device)
 
-    def _coefficients(self, timestep: torch.Tensor, like: torch.Tensor):
+    def _coefficients(self, timestep: torch.Tensor, like: torch.Tensor,
+                      *, validate: bool = True):
         if timestep.ndim != 1 or timestep.shape[0] != like.shape[0]:
             raise ValueError("timestep must have one entry per batch sample")
-        if torch.any(timestep < 0) or torch.any(timestep >= self.steps):
+        if validate and (int(timestep.min()) < 0 or int(timestep.max()) >= self.steps):
             raise ValueError("timestep outside diffusion schedule")
-        alpha_bar = self.tensors(like.device)[2][timestep.long()].view(-1, 1, 1)
+        alpha_bar = self.alpha_bar.to(like.device)[timestep.long()].view(-1, 1, 1)
         return torch.sqrt(alpha_bar), torch.sqrt(1.0 - alpha_bar)
 
     def add_noise(self, x0: torch.Tensor, timestep: torch.Tensor,
-                  epsilon: torch.Tensor) -> torch.Tensor:
+                  epsilon: torch.Tensor, *, validate: bool = True) -> torch.Tensor:
         if x0.shape != epsilon.shape:
             raise ValueError("x0 and epsilon shapes differ")
-        signal, noise = self._coefficients(timestep, x0)
+        signal, noise = self._coefficients(timestep, x0, validate=validate)
         return signal * x0 + noise * epsilon
 
     def denoise(self, x_t: torch.Tensor, timestep: torch.Tensor,

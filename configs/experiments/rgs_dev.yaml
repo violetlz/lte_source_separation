@@ -1,0 +1,12 @@
+version: lte-rgs-dev-v1
+split: audit
+parent_id_start: 1000000
+parents: 8
+sir_re_db: [-6, 0, 6]
+iterations: 256
+max_lr_candidates: [0.001, 0.005, 0.01]
+min_lr: 0.000001
+omega: kappa_squared
+timestep_range: [1, 49]
+weights_candidates: [raw, ema]
+seed: 2026092301

@@ -11,6 +11,7 @@ artifacts/datasets/*
 artifacts/manifests/*
 artifacts/runs/*
 artifacts/prior_pilot/
+artifacts/prior_formal/
 artifacts/matlab_reference/
 !artifacts/calibration/.gitkeep
 !artifacts/datasets/.gitkeep
