@@ -103,8 +103,8 @@ def evaluate(experiment: ExperimentConfig, project_root: Path) -> Path:
     for record_id in range(int(experiment.raw["num_examples"])):
         target, target_grid, target_bits = generate_target(experiment.platform, str(experiment.raw["split"]), record_id, dtype=dtype)
         interference, _, _ = generate_interference(experiment.platform, str(experiment.raw["split"]), record_id, dtype=dtype)
-        ds = target_demodulate(target.waveform, experiment.platform)
-        db = target_demodulate(interference.waveform, experiment.platform)
+        ds = target_demodulate(target.waveform, experiment.platform.waveform_spec)
+        db = target_demodulate(interference.waveform, experiment.platform.waveform_spec)
         target_inband_energy = float(np.sum(np.abs(ds) ** 2))
         target_total_energy = float(np.sum(np.abs(target.waveform) ** 2))
         clean_bits = demap_symbols(ds, "QPSK").reshape(-1)
@@ -123,8 +123,9 @@ def evaluate(experiment: ExperimentConfig, project_root: Path) -> Path:
             for method, waveform in method_inputs:
                 tick = time.perf_counter()
                 observation = Observation(example_id, waveform)
-                output = (direct_receive(observation, info, experiment.platform)
-                          if method == "direct_mixture" else receive_target(observation, info, experiment.platform))
+                output = (direct_receive(observation, info, experiment.platform.waveform_spec)
+                          if method == "direct_mixture" else receive_target(
+                              observation, info, experiment.platform.waveform_spec))
                 errors, bits = bit_errors(output.target_bits, target_bits)
                 row = {
                     "run_id": run_id, "example_id": example_id, "method": method,

@@ -1,0 +1,5 @@
+# CUDA pilot environment verified 2026-09-23.
+# Base interpreter: Python 3.10.12.
+# Install the local project separately with: pip install -e '.[test,train]'
+torch==2.9.1+cu130
+wandb==0.30.0

@@ -1,0 +1,46 @@
+version: lte-interference-prior-pilot-v1
+view_config: prior_view_v1.yaml
+source: interference
+model:
+  residual_layers: 24
+  residual_channels: 128
+  dilation_cycle: 12
+  kernel_size: 3
+  timestep_dim: 128
+  timestep_hidden: 512
+  in_channels: 2
+  out_channels: 2
+diffusion:
+  steps: 50
+  beta_start: 0.0001
+  beta_end: 0.05
+  prediction: epsilon
+optimizer:
+  name: adam
+  learning_rate: 0.0002
+  betas: [0.9, 0.999]
+  weight_decay: 0
+  grad_clip: 1.0
+  ema_decay: 0.999
+runtime:
+  effective_batch_size: 16
+  microbatch_size: 1
+  precision: bf16
+  seed: 2026092202
+  activation_checkpointing: true
+  num_workers: 0
+validation:
+  noise_levels: [0, 9, 24, 39, 49]
+  quick_parents: 8
+  schedule: [0, 100, 200]
+  full_schedule: [0, 200]
+tracking:
+  project: lte-source-separation
+  group: prior-pilot-20260922
+  name: interference-prior-pilot
+  mode: online
+  log_every: 10
+budget:
+  max_updates: 2000
+  max_process_seconds: 7200
+  milestone_every: 250

@@ -1,0 +1,11 @@
+version: lte-prior-slot-view-v1
+platform_config: ../platform/lte_v1.yaml
+parent_window_length: 30720
+window_length: 15360
+slot_offsets: [0, 15360]
+selection: sha256_parent_deterministic
+network_layout: channels_first
+coordinate_scale: sqrt2_ri
+dtype: float32
+validation_parents: 64
+validation_both_slots: true

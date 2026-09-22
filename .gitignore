@@ -1,4 +1,7 @@
 .venv/
+.venv-train/
+.training-deps/
+wandb/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -7,6 +10,7 @@ artifacts/calibration/*
 artifacts/datasets/*
 artifacts/manifests/*
 artifacts/runs/*
+artifacts/prior_pilot/
 artifacts/matlab_reference/
 !artifacts/calibration/.gitkeep
 !artifacts/datasets/.gitkeep

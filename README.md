@@ -1,15 +1,22 @@
 # lte_source_separation
 
-Reproducible LTE-inspired 5/20 MHz asynchronous OFDM waveform benchmark. Version 0.1 implements only delivery A: source generation, independent in-band calibration, time-domain mixing, one target receiver, Direct reception, scoring, and audits. It does not implement source separation or model training.
+Reproducible LTE-inspired 5/20 MHz asynchronous OFDM waveform benchmark. Delivery A provides the validated physical waveform platform. Delivery B adds two independent 0.5 ms VP epsilon-prediction priors and their bounded pilot-training machinery; it still does not implement source separation or RGS/FM inference.
 
 ## Install
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e '.[test]'
+# On the CUDA training host, use the independent environment described below:
+uv venv --python /usr/bin/python3.10 .venv-train
+uv pip install --python .venv-train/bin/python 'torch==2.9.1' \
+  --index https://download.pytorch.org/whl/cu130
+uv pip install --python .venv-train/bin/python -e '.[test]' 'wandb==0.30.0'
 ```
 
 The verified environment is recorded in `requirements.lock` and in each run manifest.
+
+Prior inspection, benchmarking, and training commands are documented in `docs/prior_training.md`.
 
 ## Reproduce delivery A
 

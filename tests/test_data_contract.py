@@ -19,9 +19,9 @@ def test_receiver_info_has_no_truth_and_ground_truth_mutation_cannot_change_outp
     observation, info, truth = build_example(platform_config, "audit", 4, 0, _calibration(platform_config))
     forbidden = {"target_bits", "target_waveform", "interference_waveform", "tau", "phi", "modulation_map"}
     assert not (set(ReceiverInfo.__dataclass_fields__) & forbidden)
-    first = direct_receive(observation, info, platform_config)
+    first = direct_receive(observation, info, platform_config.waveform_spec)
     altered_truth = replace(truth, target_bits=1 - truth.target_bits, tau=(truth.tau + 1) % 30720)
-    second = direct_receive(observation, info, platform_config)
+    second = direct_receive(observation, info, platform_config.waveform_spec)
     assert altered_truth.target_bits.shape == truth.target_bits.shape
     assert np.array_equal(first.target_bits, second.target_bits)
     assert np.array_equal(first.target_grid, second.target_grid)
@@ -35,5 +35,6 @@ def test_network_coordinate_roundtrip():
 def test_receiver_operates_without_truth(platform_config):
     observation, info, _ = build_example(platform_config, "audit", 6, 3, _calibration(platform_config))
     del _
-    output = direct_receive(Observation(observation.example_id, observation.y.copy()), info, platform_config)
+    output = direct_receive(Observation(observation.example_id, observation.y.copy()), info,
+                            platform_config.waveform_spec)
     assert output.target_bits.shape == (8400,)

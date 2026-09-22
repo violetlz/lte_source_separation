@@ -39,13 +39,13 @@ def test_target_roundtrip_cp_and_cp_damage_counterexample(platform_config):
     assert record.waveform.shape == (30720,)
     cp = audit_cp(record.waveform, 2048, platform_config.cp_lengths)
     assert cp["cp_max_abs_error"] == 0
-    recovered = target_demodulate(record.waveform, platform_config)
+    recovered = target_demodulate(record.waveform, platform_config.waveform_spec)
     assert np.linalg.norm(recovered - grid) / np.linalg.norm(grid) < 1e-10
     assert np.array_equal(demap_symbols(recovered, "QPSK").reshape(-1), bits)
     damaged = record.waveform.copy()
     damaged[:160] = 0
     assert audit_cp(damaged, 2048, platform_config.cp_lengths)["cp_max_abs_error"] > 0
-    assert np.array_equal(target_demodulate(damaged, platform_config), recovered)
+    assert np.array_equal(target_demodulate(damaged, platform_config.waveform_spec), recovered)
 
 
 def test_interference_crop_boundaries_without_wrapping(platform_config):

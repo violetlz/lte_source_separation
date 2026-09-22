@@ -27,7 +27,7 @@ def calibrate(config: PlatformConfig, num_records: int, output_path: str | Path,
     ids = []
     for record_id in range(num_records):
         record, _, _ = generate_interference(config, "calibration", record_id)
-        detected = target_demodulate(record.waveform, config)
+        detected = target_demodulate(record.waveform, config.waveform_spec)
         qb_values[record_id] = np.mean(np.abs(detected) ** 2)
         interference_power[record_id] = np.mean(np.abs(record.waveform) ** 2)
         ids.append(record.long_record_id)
@@ -35,7 +35,7 @@ def calibrate(config: PlatformConfig, num_records: int, output_path: str | Path,
     target_power = np.empty(target_check_records, dtype=np.float64)
     for record_id in range(target_check_records):
         record, _, _ = generate_target(config, "calibration", record_id)
-        detected = target_demodulate(record.waveform, config)
+        detected = target_demodulate(record.waveform, config.waveform_spec)
         qs_values[record_id] = np.mean(np.abs(detected) ** 2)
         target_power[record_id] = np.mean(np.abs(record.waveform) ** 2)
     payload: dict[str, Any] = {

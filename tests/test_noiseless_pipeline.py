@@ -14,10 +14,12 @@ def test_clean_and_oracle_noiseless_closed_loop(platform_config):
     observation, info, truth = build_example(platform_config, "audit", 2, -6, calibration)
     expected = truth.target_waveform + info.kappa * truth.interference_waveform
     assert np.max(np.abs(observation.y - expected)) < 1e-12
-    clean = receive_target(Observation(observation.example_id, truth.target_waveform), info, platform_config)
+    clean = receive_target(Observation(observation.example_id, truth.target_waveform), info,
+                           platform_config.waveform_spec)
     oracle_waveform = observation.y - info.kappa * truth.interference_waveform
-    oracle = receive_target(Observation(observation.example_id, oracle_waveform), info, platform_config)
-    direct = direct_receive(observation, info, platform_config)
+    oracle = receive_target(Observation(observation.example_id, oracle_waveform), info,
+                            platform_config.waveform_spec)
+    direct = direct_receive(observation, info, platform_config.waveform_spec)
     assert np.array_equal(clean.target_bits, truth.target_bits)
     assert np.array_equal(oracle.target_bits, truth.target_bits)
     assert direct.target_bits.shape == truth.target_bits.shape

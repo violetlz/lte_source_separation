@@ -34,7 +34,7 @@ def run_waveform_audit(config: PlatformConfig, output_path: str | Path | None = 
         }
 
     target, grid, bits = generate_target(config, "audit", 0)
-    reconstructed = target_demodulate(target.waveform, config)
+    reconstructed = target_demodulate(target.waveform, config.waveform_spec)
     recovered_bits = demap_symbols(reconstructed, "QPSK").reshape(-1)
     relative_error = float(np.linalg.norm(reconstructed - grid) / np.linalg.norm(grid))
     cp_result = audit_cp(target.waveform, config.fft_size, config.cp_lengths)
@@ -51,7 +51,7 @@ def run_waveform_audit(config: PlatformConfig, output_path: str | Path | None = 
         "passed": damaged_cp["cp_max_abs_error"] > 0,
         "damaged_cp_max_abs_error": damaged_cp["cp_max_abs_error"],
         "post_cp_removal_grid_relative_error": float(
-            np.linalg.norm(target_demodulate(damaged, config) - grid) / np.linalg.norm(grid)
+            np.linalg.norm(target_demodulate(damaged, config.waveform_spec) - grid) / np.linalg.norm(grid)
         ),
     }
 
@@ -108,13 +108,19 @@ def run_waveform_audit(config: PlatformConfig, output_path: str | Path | None = 
 
     net = complex_to_network(target.waveform)
     net_error = float(np.max(np.abs(network_to_complex(net) - target.waveform)))
+    network_energy = float(np.mean(net ** 2))
+    complex_energy = float(np.mean(np.abs(target.waveform) ** 2))
     target64, grid64, bits64 = generate_target(config, "audit", 1, dtype=np.complex64)
-    reconstructed64 = target_demodulate(target64.waveform, config)
+    reconstructed64 = target_demodulate(target64.waveform, config.waveform_spec)
     rel64 = float(np.linalg.norm(reconstructed64 - grid64) / np.linalg.norm(grid64))
     bit_errors64 = int(np.count_nonzero(demap_symbols(reconstructed64, "QPSK").reshape(-1) != bits64))
     checks["precision_and_network_coordinates"] = {
-        "passed": net_error < 1e-12 and rel64 < 1e-5 and bit_errors64 == 0,
+        "passed": (net.shape == (2, config.window_length) and net.dtype == np.float32
+                   and net_error < 1e-6 and rel64 < 1e-5 and bit_errors64 == 0
+                   and abs(network_energy - complex_energy) < 1e-6),
         "network_roundtrip_max_abs_error": net_error,
+        "network_shape": list(net.shape), "network_dtype": str(net.dtype),
+        "network_mean_square": network_energy, "complex_mean_power": complex_energy,
         "complex64_relative_grid_error": rel64,
         "complex64_bit_errors": bit_errors64,
         "fft_compute_precision": "numpy promotes complex64 FFT output to complex128",

@@ -7,6 +7,21 @@ import numpy as np
 
 
 @dataclass(frozen=True)
+class WaveformSpec:
+    """Public waveform geometry; deliberately contains no generation seed."""
+
+    platform_version: str
+    platform_hash: str
+    sample_rate_hz: int
+    subcarrier_spacing_hz: int
+    fft_size: int
+    num_symbols: int
+    cp_lengths: tuple[int, ...]
+    window_length: int
+    target_subcarriers: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class SourceRecord:
     source_id: str
     long_record_id: str
@@ -66,11 +81,21 @@ def assert_receiver_info_public(info: ReceiverInfo) -> None:
 
 def complex_to_network(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x)
-    return np.sqrt(2.0) * np.stack((x.real, x.imag), axis=-1)
+    if x.ndim not in (1, 2) or not np.iscomplexobj(x):
+        raise ValueError("expected complex [L] or [B,L]")
+    axis = 0 if x.ndim == 1 else 1
+    return (np.sqrt(np.float32(2.0)) * np.stack((x.real, x.imag), axis=axis)).astype(
+        np.float32, copy=False
+    )
 
 
 def network_to_complex(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x)
-    if x.shape[-1] != 2:
-        raise ValueError("network coordinates require final dimension 2")
-    return (x[..., 0] + 1j * x[..., 1]) / np.sqrt(2.0)
+    if x.ndim not in (2, 3):
+        raise ValueError("expected real [2,L] or [B,2,L]")
+    axis = 0 if x.ndim == 2 else 1
+    if x.shape[axis] != 2 or np.iscomplexobj(x):
+        raise ValueError("network coordinates require a two-channel real axis")
+    real = x[0] if x.ndim == 2 else x[:, 0]
+    imag = x[1] if x.ndim == 2 else x[:, 1]
+    return ((real + 1j * imag) / np.sqrt(np.float32(2.0))).astype(np.complex64, copy=False)
