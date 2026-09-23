@@ -77,6 +77,33 @@ The formal dual-GPU RGS workers were launched at 2026-09-23 21:18 CST in
 not a completed result. To check progress: `screen -ls` and
 `.venv-train/bin/python scripts/summarize_lte_rgs_ber_5000.py artifacts/rgs_ber_5000/formal_frozen_lr_0p0001_20260923 --output-dir reports/rgs_ber_5000_partial`.
 
+## Paused formal run; paired budget audit first
+
+At the user's request on 2026-09-23, the two formal RGS workers were stopped
+with SIGINT, not resumed, and their hourly restart automation was paused.
+There were 68 complete, atomic 5,000-step RGS test shards at pause; all are
+retained. They are **not** used to select an iteration budget. The baseline
+results above remain complete, but there is no complete formal RGS curve.
+
+The budget audit runs only on the fixed audit split, parents `1000000..1000015`,
+at SIR_RE `[-24,-12,-6,-3,0,3,6]`. Each parent/SIR generates one observation,
+one Direct initialization, and fixed per-slot RGS seeds. The 1,000-, 2,000-,
+and 5,000-step *completed budgets* each have their own cosine LR schedule
+(`max_lr=1e-4`, `min_lr=1e-6`). The 5,000-step path additionally records states
+at steps 1,000 and 2,000, separately labelled as shared-path snapshots, not
+completed short-budget runs. All three non-Oracle baselines are evaluated on
+the very same observations. The audit reports integer error/bit counts and
+parent-paired BER differences with bootstrap intervals; a complete report
+requires all 16 parents at every SIR/method. Its running artifacts are under
+`artifacts/rgs_ber_5000/audit_paired_budgets_20260923/` and workers are the
+`lte-rgs-budget-audit-gpu0` and `lte-rgs-budget-audit-gpu1` screen sessions.
+
+The decision question is the smallest completed budget that shows a credible
+BER advantage over the named traditional baselines in the relevant SIR range,
+not whether RGS reaches its algorithmic limit. Any reduction of the formal
+test grid or budget will be a new, explicitly labelled run; the paused 5,000-step
+test will not be relabelled as a shorter-budget result.
+
 The formal sealed test is not a claim that 5,000 steps converge; the
 [source paper's §5.2](https://arxiv.org/html/2306.14411v3) 20,000-step schedule
 is a different compute budget. Full-waveform

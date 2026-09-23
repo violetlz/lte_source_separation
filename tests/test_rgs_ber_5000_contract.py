@@ -42,3 +42,18 @@ def test_bit_map_is_bitwise_and_finite_at_extreme_kappa():
         result = marginal_bit_map(grid, kappa, stats)
         assert result.shape == (4,)
         assert np.isin(result, (0, 1)).all()
+
+
+def test_snapshot_is_same_trajectory_and_does_not_change_final_state():
+    y = torch.full((1, 2, 15360), 0.2)
+    initial = torch.zeros_like(y)
+    target, interference = _prior("target"), _prior("interference")
+    plain, _ = separate_rgs(y, 1.8, initial, target, interference,
+                            RGSConfig(3, 0.001, sample_seeds=(47,), diagnostic_interval=3))
+    captured, audit = separate_rgs(y, 1.8, initial, target, interference,
+                                   RGSConfig(3, 0.001, sample_seeds=(47,),
+                                             diagnostic_interval=3, snapshot_iterations=(1, 2)))
+    assert torch.equal(plain, captured)
+    assert set(audit["snapshots"]) == {1, 2}
+    assert all(state.shape == y.shape for state in audit["snapshots"].values())
+    assert audit["target_prior_calls"] == audit["interference_prior_calls"] == 3

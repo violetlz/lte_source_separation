@@ -19,6 +19,7 @@ class RGSConfig:
     seed: int = 0
     sample_seeds: tuple[int, ...] | None = None
     diagnostic_interval: int = 1
+    snapshot_iterations: tuple[int, ...] = ()
 
 
 @torch.no_grad()
@@ -43,6 +44,9 @@ def separate_rgs(y: torch.Tensor, kappa: float, initial_s: torch.Tensor,
         raise ValueError("RGS timesteps must be inside trained levels 1..49")
     if config.iterations <= 0 or config.diagnostic_interval < 0:
         raise ValueError("RGS iterations must be positive and diagnostic interval nonnegative")
+    if (len(set(config.snapshot_iterations)) != len(config.snapshot_iterations) or
+            any(step < 1 or step > config.iterations for step in config.snapshot_iterations)):
+        raise ValueError("snapshot iterations must be unique and inside the run")
     omega = kappa * kappa if config.omega is None else float(config.omega)
     if config.sample_seeds is not None and len(config.sample_seeds) != y.shape[0]:
         raise ValueError("one RGS seed is required per sample")
@@ -51,6 +55,8 @@ def separate_rgs(y: torch.Tensor, kappa: float, initial_s: torch.Tensor,
     generator = None if generators is not None else torch.Generator(device=y.device).manual_seed(config.seed)
     s = initial_s.detach().float().clone()
     update_norm_sum = torch.zeros((), device=y.device)
+    snapshots = {}
+    snapshot_steps = set(config.snapshot_iterations)
     for iteration in range(config.iterations):
         batch = y.shape[0]
         if generators is None:
@@ -80,6 +86,8 @@ def separate_rgs(y: torch.Tensor, kappa: float, initial_s: torch.Tensor,
         phase = iteration / max(config.iterations - 1, 1)
         lr = config.min_lr + 0.5 * (config.max_lr - config.min_lr) * (1.0 + math.cos(math.pi * phase))
         s = s - lr * gradient
+        if iteration + 1 in snapshot_steps:
+            snapshots[iteration + 1] = s.detach().clone()
         update_norm_sum += torch.sqrt(torch.mean((lr * gradient) ** 2))
         if config.diagnostic_interval and ((iteration + 1) % config.diagnostic_interval == 0 or
                                            iteration + 1 == config.iterations):
@@ -87,9 +95,12 @@ def separate_rgs(y: torch.Tensor, kappa: float, initial_s: torch.Tensor,
                 raise FloatingPointError(f"non-finite RGS state at iteration {iteration + 1}")
     b = (y - s) / kappa
     reconstruction = torch.max(torch.abs(y - (s + kappa * b))).item()
-    return s, {"iterations": config.iterations, "omega": omega,
+    audit = {"iterations": config.iterations, "omega": omega,
                "max_lr": config.max_lr, "min_lr": config.min_lr,
                "target_prior_calls": config.iterations,
                "interference_prior_calls": config.iterations,
                "mean_update_rms": float(update_norm_sum / config.iterations),
                "reconstruction_max_abs": reconstruction}
+    if snapshots:
+        audit["snapshots"] = snapshots
+    return s, audit
