@@ -192,6 +192,8 @@ def train_formal(raw: dict, run_dir: Path, *, device_name: str = "cuda:0",
         payload = torch.load(formal_last, map_location="cpu", weights_only=False)
         if payload.get("formal_config_hash") != config_hash or payload.get("source") != source:
             raise ValueError("strict formal resume config/source mismatch")
+        if int(payload.get("distributed_world_size", 1)) != 1:
+            raise ValueError("distributed checkpoint must resume with run_prior_formal_ddp.py")
     else:
         payload = torch.load(pilot_path, map_location="cpu", weights_only=False)
         _audit_pilot(payload, raw, view)

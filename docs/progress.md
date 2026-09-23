@@ -25,7 +25,23 @@ checkpoint smoke tests.
 
 Both formal jobs started from cumulative step 2000, passed the +200-update stable handoff,
 saved known-good formal checkpoints and showed train/validation history on remote W&B.
-They continue in the ignored `artifacts/prior_formal/prior-formal-20260923` run directory.
-This is engineering/training progress, not a completed quality or BER result. The full
-RGS-dev selection, 10k-step sentinel and final sealed functional evaluation remain pending
-the corresponding training milestones. FM and physical AWGN remain out of scope.
+Both formal jobs have now completed their budgets: target at cumulative step
+200,000 and interference at step 300,000. Full fixed-validation results and
+checkpoint identities are in `reports/formal_training_results_20260923.md`;
+all 50 unique full-validation rows are in
+`reports/formal_validation_full_20260923.csv`. The raw artifacts remain under
+ignored `artifacts/prior_formal/prior-formal-20260923`. The full RGS-dev
+selection, 10k-step sentinel and final sealed functional evaluation remain
+pending. FM and physical AWGN remain out of scope.
+
+On 2026-09-23, the interference formal worker was gracefully paused at cumulative
+step 95,293 and resumed from its final `last.pt` checkpoint with two NCCL ranks.
+The global effective batch remains 16 (eight windows per GPU); the same recoverable
+global sampler, optimizer, EMA, source data, validation protocol, and 300,000-step
+budget are used. Both rank RNG states are now saved in each continuation checkpoint.
+A bounded two-GPU check reached step 95,450 with exact sample accounting
+(`1,495,200` formal exposures, `1,527,200` cumulative exposures) and a 100-step
+mean of 0.0910 s/update, versus about 0.1729 s/update on one GPU. The long run
+resumed from step 95,450 in the same ignored run directory and W&B run. It
+completed step 300,000 with 4,768,000 formal exposures, a final full
+validation, and both rank RNG states in its checkpoint.

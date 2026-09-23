@@ -123,5 +123,25 @@ class RecoverableEpochBatchSampler(Sampler[list[int]]):
             raise ValueError("sampler exposure count mismatch")
 
 
+class RankSliceBatchSampler(Sampler[list[int]]):
+    """Partition each recoverable global batch without changing its cursor."""
+
+    def __init__(self, sampler: RecoverableEpochBatchSampler, rank: int,
+                 world_size: int):
+        if world_size <= 0 or not 0 <= rank < world_size:
+            raise ValueError("invalid distributed rank/world size")
+        if sampler.batch_size % world_size:
+            raise ValueError("global batch must divide evenly across ranks")
+        self.sampler, self.rank, self.world_size = sampler, rank, world_size
+
+    def __iter__(self):
+        local = self.sampler.batch_size // self.world_size
+        for batch in self.sampler:
+            yield batch[self.rank * local:(self.rank + 1) * local]
+
+    def __len__(self) -> int:
+        return len(self.sampler)
+
+
 def expected_shards(count: int, shard_size: int) -> int:
     return int(math.ceil(count / shard_size))

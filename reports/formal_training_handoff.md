@@ -1,12 +1,15 @@
 # Formal training handoff
 
+Historical stable-start snapshot. Both runs later completed their budgets;
+see [final training results](formal_training_results_20260923.md).
+
 Snapshot date: 2026-09-23 Asia/Shanghai. Both workers continue in detached background
 processes; values below are the verified stable handoff points, not final training results.
 
 | Source | physical GPU / UUID | PID at launch | stable step | new exposures at step 2200 | throughput | W&B |
 |---|---|---:|---:|---:|---:|---|
-| target | 0 / `GPU-e4785e2d-2d54-d676-baf3-fab3a0085058` | 1170027 (current) | 2200; reverified after profiler resume | 3,200 | 250.8 samples/s | [ewq62hpj](https://wandb.ai/violetftrt-evergarden/lte-source-separation/runs/ewq62hpj) |
-| interference | 1 / `GPU-77cc34c6-695a-dda2-aef2-59145c1f04ce` | 1328003 (current) | 2200; reverified after state-schema resume | 3,200 | 95.8 samples/s | [pyq671jm](https://wandb.ai/violetftrt-evergarden/lte-source-separation/runs/pyq671jm) |
+| target | 0 / `GPU-e4785e2d-2d54-d676-baf3-fab3a0085058` | 1170027 (at handoff) | 2200; reverified after profiler resume | 3,200 | 250.8 samples/s | [ewq62hpj](https://wandb.ai/violetftrt-evergarden/lte-source-separation/runs/ewq62hpj) |
+| interference | 1 / `GPU-77cc34c6-695a-dda2-aef2-59145c1f04ce` | 1328003 (at handoff) | 2200; reverified after state-schema resume | 3,200 | 95.8 samples/s | [pyq671jm](https://wandb.ai/violetftrt-evergarden/lte-source-separation/runs/pyq671jm) |
 
 Both formal runs explicitly link pilot W&B IDs `1za8kes6`/`2xif3tr0` and the verified
 parent checkpoint SHA256. They inherited raw, EMA, Adam, cumulative step 2000, historical

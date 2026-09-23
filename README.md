@@ -18,6 +18,11 @@ The verified environment is recorded in `requirements.lock` and in each run mani
 
 Prior dataset generation, inspection, profiling, formal training and RGS smoke commands are documented in `docs/prior_training.md`.
 
+The completed 200k-step target and 300k-step interference prior results are in
+[the formal training report](reports/formal_training_results_20260923.md), with
+[all 50 fixed full-validation points](reports/formal_validation_full_20260923.csv).
+The checkpoint weights and raw run logs remain local rather than in Git.
+
 ## Reproduce delivery A
 
 ```bash
