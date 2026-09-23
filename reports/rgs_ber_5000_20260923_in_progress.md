@@ -104,6 +104,12 @@ not whether RGS reaches its algorithmic limit. Any reduction of the formal
 test grid or budget will be a new, explicitly labelled run; the paused 5,000-step
 test will not be relabelled as a shorter-budget result.
 
+The 112-shard audit finished on 2026-09-23. Its full count-level result and
+figure are in [the paired budget audit](rgs_budget_audit_20260923.md). Under
+the current frozen configuration, no 1k/2k/5k budget demonstrated a credible
+BER advantage over the estimated bit-MAP comparator. The formal run and its
+restart automation remain paused pending a user decision.
+
 The formal sealed test is not a claim that 5,000 steps converge; the
 [source paper's §5.2](https://arxiv.org/html/2306.14411v3) 20,000-step schedule
 is a different compute budget. Full-waveform

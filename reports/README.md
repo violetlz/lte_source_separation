@@ -14,3 +14,8 @@ needed to audit its claims:
 Raw IQ, per-example CSVs, MATLAB `.mat` fixtures, logs, datasets, checkpoints, and
 other bulky generated artifacts remain under ignored `artifacts/` and are intentionally
 not published in Git.
+
+The no-noise waveform RGS formal BER test is paused. Its complete 112-shard,
+audit-split-only 1k/2k/5k comparison is documented in
+[`rgs_budget_audit_20260923.md`](rgs_budget_audit_20260923.md), with lightweight
+count-level CSVs and a BER figure under `rgs_budget_audit_20260923/`.

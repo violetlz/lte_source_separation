@@ -28,20 +28,44 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     config = json.loads((args.run_dir / "resolved_config.json").read_text())
+    expected_shards = {(sir, parent) for sir in SIRS for parent in PARENTS}
+    expected_rows = {(method, "baseline", 0, 0) for method in BASELINES}
+    expected_rows.update({("waveform_alpha_rgs", "completed_budget", step, step)
+                          for step in BUDGETS})
+    expected_rows.update({("waveform_alpha_rgs", "shared_5000_path_snapshot", 5000, step)
+                          for step in (1000, 2000)})
     grouped = defaultdict(dict)
-    shard_count = 0
+    seen_shards = set()
     for shard in (args.run_dir / "shards").glob("sir_*/*.json"):
         payload = json.loads(shard.read_text())
         if payload["status"] != "complete" or payload["config_sha256"] != config["config_sha256"]:
             raise ValueError(f"invalid audit shard {shard}")
-        shard_count += 1
+        shard_key = (int(payload["sir_re_db"]), int(payload["parent_id"]))
+        sir, parent = shard_key
+        if (shard_key not in expected_shards or shard_key in seen_shards or
+                shard.parent.name != f"sir_{sir:+03d}" or shard.name != f"parent_{parent}.json"):
+            raise ValueError(f"unexpected or duplicate audit shard {shard}")
+        seen_shards.add(shard_key)
+        seen_rows = set()
+        shard_kappas = set()
         for row in payload["rows"]:
-            key = (int(row["sir_re_db"]), row["method"], row.get("trajectory_kind", "baseline"),
-                   int(row.get("schedule_total_steps", 0)), int(row.get("recorded_step", 0)))
-            parent = int(row["parent_id"])
+            if (int(row["sir_re_db"]), int(row["parent_id"])) != shard_key:
+                raise ValueError(f"row/shard identity mismatch: {shard}")
+            row_key = (row["method"], row.get("trajectory_kind", "baseline"),
+                       int(row.get("schedule_total_steps", 0)), int(row.get("recorded_step", 0)))
+            if row_key not in expected_rows or row_key in seen_rows:
+                raise ValueError(f"unexpected or duplicate method row: {shard}, {row_key}")
+            seen_rows.add(row_key)
+            if int(row["num_bits"]) != 8400 or not 0 <= int(row["num_errors"]) <= 8400:
+                raise ValueError(f"invalid integer BER count: {shard}, {row_key}")
+            shard_kappas.add(float(row["kappa"]))
+            key = (sir, *row_key)
             if parent in grouped[key]:
                 raise ValueError(f"duplicate {key} parent {parent}")
             grouped[key][parent] = row
+        if seen_rows != expected_rows or len(shard_kappas) != 1:
+            raise ValueError(f"incomplete rows or inconsistent kappa: {shard}")
+    shard_count = len(seen_shards)
     expected = set(PARENTS)
     needed = []
     for sir in SIRS:
@@ -55,7 +79,7 @@ def main():
     (args.output_dir / "progress.json").write_text(json.dumps({"complete_shards": shard_count,
                                                                  "expected_shards": len(SIRS) * len(PARENTS),
                                                                  "group_parent_counts": progress}, indent=2) + "\n")
-    if shard_count != len(SIRS) * len(PARENTS) or any(set(grouped[key]) != expected for key in needed):
+    if seen_shards != expected_shards or any(set(grouped[key]) != expected for key in needed):
         print(json.dumps({"status": "incomplete", "complete_shards": shard_count,
                           "expected_shards": len(SIRS) * len(PARENTS)}))
         return
