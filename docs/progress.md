@@ -45,3 +45,15 @@ mean of 0.0910 s/update, versus about 0.1729 s/update on one GPU. The long run
 resumed from step 95,450 in the same ignored run directory and W&B run. It
 completed step 300,000 with 4,768,000 formal exposures, a final full
 validation, and both rank RNG states in its checkpoint.
+
+## Delivery D: paired no-noise RGS BER test in progress
+
+On 2026-09-23, both final EMA prior checkpoints and the formal calibration were
+verified. The strict 11-SIR/256-parent test runner, train-only estimated baselines,
+per-sample RGS RNG, atomic two-GPU shards, completeness-gated plotting, and
+tests are present. All three non-Oracle baseline sweeps have finished;
+clean/oracle are zero-error. The 5,000-step waveform RGS sweep is still running,
+so no four-method formal BER curve or final performance claim exists yet.
+See `reports/rgs_ber_5000_20260923_in_progress.md` and its explicitly partial
+baseline CSV. The exact two-source LMMSE is not implemented; its graph slot is
+honestly the FFT-diagonal approximate Wiener baseline.

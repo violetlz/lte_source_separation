@@ -13,6 +13,7 @@ artifacts/runs/*
 artifacts/prior_pilot/
 artifacts/prior_formal/
 artifacts/matlab_reference/
+artifacts/rgs_ber_5000/
 !artifacts/calibration/.gitkeep
 !artifacts/datasets/.gitkeep
 !artifacts/manifests/.gitkeep

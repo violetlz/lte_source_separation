@@ -17,6 +17,8 @@ class RGSConfig:
     timestep_min: int = 1
     timestep_max: int = 49
     seed: int = 0
+    sample_seeds: tuple[int, ...] | None = None
+    diagnostic_interval: int = 1
 
 
 @torch.no_grad()
@@ -39,18 +41,34 @@ def separate_rgs(y: torch.Tensor, kappa: float, initial_s: torch.Tensor,
         raise ValueError("RGS prior platform hashes differ")
     if not 1 <= config.timestep_min <= config.timestep_max <= 49:
         raise ValueError("RGS timesteps must be inside trained levels 1..49")
+    if config.iterations <= 0 or config.diagnostic_interval < 0:
+        raise ValueError("RGS iterations must be positive and diagnostic interval nonnegative")
     omega = kappa * kappa if config.omega is None else float(config.omega)
-    generator = torch.Generator(device=y.device).manual_seed(config.seed)
+    if config.sample_seeds is not None and len(config.sample_seeds) != y.shape[0]:
+        raise ValueError("one RGS seed is required per sample")
+    generators = ([torch.Generator(device=y.device).manual_seed(int(seed))
+                   for seed in config.sample_seeds] if config.sample_seeds is not None else None)
+    generator = None if generators is not None else torch.Generator(device=y.device).manual_seed(config.seed)
     s = initial_s.detach().float().clone()
-    update_norms = []
+    update_norm_sum = torch.zeros((), device=y.device)
     for iteration in range(config.iterations):
         batch = y.shape[0]
-        t = torch.randint(config.timestep_min, config.timestep_max + 1, (batch,),
-                          device=y.device, generator=generator)
-        u = torch.randint(config.timestep_min, config.timestep_max + 1, (batch,),
-                          device=y.device, generator=generator)
-        z_s = torch.randn(s.shape, device=s.device, dtype=torch.float32, generator=generator)
-        z_b = torch.randn(s.shape, device=s.device, dtype=torch.float32, generator=generator)
+        if generators is None:
+            t = torch.randint(config.timestep_min, config.timestep_max + 1, (batch,),
+                              device=y.device, generator=generator)
+            u = torch.randint(config.timestep_min, config.timestep_max + 1, (batch,),
+                              device=y.device, generator=generator)
+            z_s = torch.randn(s.shape, device=s.device, dtype=torch.float32, generator=generator)
+            z_b = torch.randn(s.shape, device=s.device, dtype=torch.float32, generator=generator)
+        else:
+            t = torch.stack([torch.randint(config.timestep_min, config.timestep_max + 1, (),
+                                           device=y.device, generator=g) for g in generators])
+            u = torch.stack([torch.randint(config.timestep_min, config.timestep_max + 1, (),
+                                           device=y.device, generator=g) for g in generators])
+            z_s = torch.stack([torch.randn(s.shape[1:], device=s.device, dtype=torch.float32,
+                                           generator=g) for g in generators])
+            z_b = torch.stack([torch.randn(s.shape[1:], device=s.device, dtype=torch.float32,
+                                           generator=g) for g in generators])
         a_t, sigma_t = target_prior.schedule._coefficients(t, s, validate=False)
         a_u, sigma_u = interference_prior.schedule._coefficients(u, s, validate=False)
         b = (y - s) / kappa
@@ -62,12 +80,16 @@ def separate_rgs(y: torch.Tensor, kappa: float, initial_s: torch.Tensor,
         phase = iteration / max(config.iterations - 1, 1)
         lr = config.min_lr + 0.5 * (config.max_lr - config.min_lr) * (1.0 + math.cos(math.pi * phase))
         s = s - lr * gradient
-        if not torch.isfinite(s).all():
-            raise FloatingPointError(f"non-finite RGS state at iteration {iteration}")
-        update_norms.append(float(torch.sqrt(torch.mean((lr * gradient) ** 2))))
+        update_norm_sum += torch.sqrt(torch.mean((lr * gradient) ** 2))
+        if config.diagnostic_interval and ((iteration + 1) % config.diagnostic_interval == 0 or
+                                           iteration + 1 == config.iterations):
+            if not torch.isfinite(s).all():
+                raise FloatingPointError(f"non-finite RGS state at iteration {iteration + 1}")
     b = (y - s) / kappa
     reconstruction = torch.max(torch.abs(y - (s + kappa * b))).item()
     return s, {"iterations": config.iterations, "omega": omega,
                "max_lr": config.max_lr, "min_lr": config.min_lr,
-               "mean_update_rms": sum(update_norms) / len(update_norms),
+               "target_prior_calls": config.iterations,
+               "interference_prior_calls": config.iterations,
+               "mean_update_rms": float(update_norm_sum / config.iterations),
                "reconstruction_max_abs": reconstruction}
