@@ -46,14 +46,33 @@ resumed from step 95,450 in the same ignored run directory and W&B run. It
 completed step 300,000 with 4,768,000 formal exposures, a final full
 validation, and both rank RNG states in its checkpoint.
 
-## Delivery D: paired no-noise RGS BER test in progress
+## Delivery D: paired no-noise RGS BER test paused after audit
 
 On 2026-09-23, both final EMA prior checkpoints and the formal calibration were
 verified. The strict 11-SIR/256-parent test runner, train-only estimated baselines,
 per-sample RGS RNG, atomic two-GPU shards, completeness-gated plotting, and
 tests are present. All three non-Oracle baseline sweeps have finished;
-clean/oracle are zero-error. The 5,000-step waveform RGS sweep is still running,
-so no four-method formal BER curve or final performance claim exists yet.
+clean/oracle are zero-error. The 5,000-step waveform RGS sweep was paused
+after 68 complete atomic test shards at the user's request; it has not been
+resumed, so no four-method formal BER curve or final performance claim exists.
 See `reports/rgs_ber_5000_20260923_in_progress.md` and its explicitly partial
 baseline CSV. The exact two-source LMMSE is not implemented; its graph slot is
 honestly the FFT-diagonal approximate Wiener baseline.
+
+The independent audit-only paired 1k/2k/5k comparison completed all 112
+predeclared `(SIR,parent)` shards. Its count-level report and figure are in
+`reports/rgs_budget_audit_20260923.md`: the current frozen model/receiver
+did not show a credible BER advantage over the estimated bit-MAP comparator.
+No shorter formal budget was selected from the partial sealed test.
+
+## Receiver diagnosis (2026-09-24)
+
+A new audit-only, frozen-weight 5k diagnostic recomputed 16 preselected
+trajectories at -24, -6, 0 and +6 dB. Direct/RGS counts and RGS NMSE match
+the original atomic audit shards. At -6/0/+6 dB, none of the 100,800 paired
+bits changed from the Direct hard-remodulated initialization despite modest
+target-grid NMSE reductions. At -24 dB, 90 flips netted 24 corrected bits,
+but RGS worsened both waveform and target-grid NMSE relative to that
+initialization. The diagnosis and caveats are in
+`reports/rgs_receiver_diagnosis_20260924.md`; it is not an algorithm fix or
+new formal test. The formal workers and both automations remain paused.

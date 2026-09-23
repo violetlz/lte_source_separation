@@ -19,3 +19,6 @@ The no-noise waveform RGS formal BER test is paused. Its complete 112-shard,
 audit-split-only 1k/2k/5k comparison is documented in
 [`rgs_budget_audit_20260923.md`](rgs_budget_audit_20260923.md), with lightweight
 count-level CSVs and a BER figure under `rgs_budget_audit_20260923/`.
+The follow-up frozen-model receiver-path diagnosis is in
+[`rgs_receiver_diagnosis_20260924.md`](rgs_receiver_diagnosis_20260924.md),
+with a small machine-readable audit summary beside it.
